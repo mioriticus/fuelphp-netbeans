@@ -163,6 +163,7 @@ public final class FuelUtils {
 
     public static void createAutoCompletionFile(PhpModule phpModule, boolean useTestCaseMethod) throws Exception {
         FileObject coreDirectory = getCoreDirectory(phpModule);
+        FileObject packagesDirectory = getPackagesDirectory(phpModule);
         FileObject nbprojectDirectory = phpModule.getProjectDirectory().getFileObject(NBPROJECT_DIR_NAME);
         if (nbprojectDirectory == null) {
             // notification
@@ -176,6 +177,21 @@ public final class FuelUtils {
         if (coreDirectory != null) {
             FileObject classesDirectory = coreDirectory.getFileObject("classes"); // NOI18N
             FileObject[] children = classesDirectory.getChildren();
+            
+            // Make it mutable
+            ArrayList<FileObject> childrenList = new ArrayList<FileObject>();
+            Collections.addAll(childrenList, children);
+            
+            // Auth
+            FileObject classesDirectoryAuth = packagesDirectory.getFileObject("auth/classes"); // NOI18N
+            Collections.addAll(childrenList, classesDirectoryAuth.getChildren());
+            
+            // Email
+            FileObject classesDirectoryEmail = packagesDirectory.getFileObject("email/classes"); // NOI18N
+            Collections.addAll(childrenList, classesDirectoryEmail.getChildren());
+            
+            children = childrenList.toArray(children);
+            
             Arrays.sort(children, new FileObjectComparator());
 
             PrintWriter printWriter = new PrintWriter(completionFile.getOutputStream());
@@ -277,6 +293,21 @@ public final class FuelUtils {
         return sourceDirectory.getFileObject(fuelName + "/core"); // NOI18N
     }
 
+    /**
+     * get fuel packages directory
+     *
+     * @param phpModule
+     * @return
+     */
+    public static FileObject getPackagesDirectory(PhpModule phpModule) {
+        String fuelName = FuelPhpPreferences.getFuelName(phpModule);
+        FileObject sourceDirectory = phpModule.getSourceDirectory();
+        if (sourceDirectory == null) {
+            return null;
+        }
+        return sourceDirectory.getFileObject(fuelName + "/packages"); // NOI18N
+    }
+    
     /**
      * Check controller file
      *
